@@ -18,4 +18,6 @@ LT_Exception.cpp
 LT_PMBusDeviceMWDBU3200.cpp
 LT_MWDBU3200FaultLog.cpp
 LT_FaultLog.cpp
+LT_SMBusNoPec.cpp
+LT_SMBusPec.cpp
     )

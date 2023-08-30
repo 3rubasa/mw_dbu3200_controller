@@ -47,21 +47,18 @@ class LT_PMBusDeviceMWDBU3200 : public LT_PMBusDeviceController
       uint16_t id;
       LT_PMBusDeviceMWDBU3200 *device;
 
-      id = pmbus->getMfrSpecialId(address);
-      if ((id & 0xFFF0) == 0x4130)
-      {
-        if (pmbus->getRailAddress(address) != address)
-        {
-          printf("Found rail address %x %x\n", pmbus->getRailAddress(address), address);
+// TODO: implement
+//      id = pmbus->getMfrSpecialId(address);
+
+      if (address == 0x47) {
+          printf("Found device at address 0x%x\n", address);
           device = new LT_PMBusDeviceMWDBU3200(pmbus, address);
           device->probeSpeed();
           return device;
-        }
-        else
+      }
+      else {
           return NULL;
       }
-      else
-        return NULL;
     }
     
     void reset()

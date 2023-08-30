@@ -25,27 +25,79 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef LT_PMBusDetect_H_
-#define LT_PMBusDetect_H_
+#define ENABLE_I2C 1
 
-#include "LT_PMBusDevice.h"
-#include "LT_PMBusRail.h"
-#include <vector>
+#ifdef DMALLOC
+#include <dmalloc.h>
+#else
+#include <stdlib.h>
+#endif
 
-class LT_PMBusDetect
+#include <stdint.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <linux/types.h>
+extern "C"
 {
-  protected:
-    LT_PMBus *pmbus_;
-    std::vector<LT_PMBusDevice*> devices_;
+#include <linux/i2c-dev.h>
+}
+#include "LT_Exception.h"
+#include "LT_SMBusPec.h"
 
-  public:
-    LT_PMBusDetect(LT_PMBus *pmbus);
-    ~LT_PMBusDetect();
+LT_SMBusPec::LT_SMBusPec() : LT_SMBusBase()
+{
+#if ENABLE_I2C
+  if (LT_SMBusBase::file_ <= 0)
+  {
+    file_ = open("/dev/i2c-0", O_RDWR);
+    if (LT_SMBusBase::file_ < 0)
+      {
+        throw LT_Exception("Fail to open PEC");
+      }
+      clearBuffer();
 
-    //! Detect devices on bus
-    void detect();
+      LT_SMBusBase::open_ = true;
+      //printf ("Open NoPec handle %d", LT_SMBusBase::file_);
+  }
+#endif
+  pec = true;
+}
 
-    std::vector<LT_PMBusDevice*> getDevices();
-};
+LT_SMBusPec::LT_SMBusPec(char *dev) : LT_SMBusBase()
+{
+#if ENABLE_I2C
+  //printf("file_ is %d\n", LT_SMBusBase::file_);
+  if (LT_SMBusBase::file_ <= 0)
+  {
+    LT_SMBusBase::file_ = open(dev, O_RDWR);
+    if (LT_SMBusBase::file_ < 0)
+    {
+        throw LT_Exception("Fail to open PEC");
+    }
+    clearBuffer();
 
-#endif /* LT_PMBusDetect_H_ */
+    LT_SMBusBase::open_ = true;
+    //printf ("Open NoPec device %s handle %d\n", dev, file_);
+  }
+#endif
+  pec = true;
+}
+
+LT_SMBusPec::LT_SMBusPec(uint32_t speed)
+{
+#if ENABLE_I2C
+  if (LT_SMBusBase::file_ <= 0)
+  {
+    LT_SMBusBase::file_ = open("/dev/i2c-0", O_RDWR);
+    if (LT_SMBusBase::file_ < 0)
+    {
+        printf("Fail to open PEC\n");
+    }
+    clearBuffer();
+
+    LT_SMBusBase::open_ = true;
+    //printf ("Open NoPec handle %d\n", LT_SMBusBase::file_);
+  }
+#endif
+  pec = true;
+}

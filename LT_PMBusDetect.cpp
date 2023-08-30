@@ -31,50 +31,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "LT_PMBusDeviceMWDBU3200.h"
 
 LT_PMBusDetect::LT_PMBusDetect(LT_PMBus *pmbus):pmbus_(pmbus)
-{
-  devices_ = NULL;
-  rails_ = NULL;
-  deviceCnt_ = 0;
-  railCnt_ = 0;
-}
+{}
 
 LT_PMBusDetect::~LT_PMBusDetect()
 {
-  if (deviceCnt_ > 0)
-  {
-    while (deviceCnt_ > 0)
-    {
-      deviceCnt_--;
-      if (devices_[deviceCnt_] != NULL)
-        delete (devices_[deviceCnt_]);
+  for (LT_PMBusDevice * d: devices_) {
+    if (d != NULL) {
+      delete d;
     }
-    free(devices_);
-  }
-
-  if (railCnt_ > 0)
-  {
-    while (railCnt_ > 0)
-    {
-      railCnt_--;
-      if (rails_[railCnt_] != NULL)
-      {
-        delete (rails_[railCnt_]);
-      }
-    }
-    free(rails_);
   }
 }
 
-LT_PMBusDevice **LT_PMBusDetect::getDevices(
+std::vector<LT_PMBusDevice*> LT_PMBusDetect::getDevices(
 )
 {
   return devices_;
-}
-
-LT_PMBusRail **LT_PMBusDetect::getRails(
-)
-{
-  return rails_;
 }
 
 
@@ -84,96 +55,22 @@ void LT_PMBusDetect::detect ()
   LT_PMBusDevice *device;
   unsigned int i, j;
 
-  if (deviceCnt_ > 0)
-  {
-    while (deviceCnt_ > 0)
-    {
-      deviceCnt_--;
-      if (devices_[deviceCnt_] != NULL)
-        delete (devices_[deviceCnt_]);
+   for (LT_PMBusDevice * d: devices_) {
+    if (d != NULL) {
+      delete d;
     }
-    free(devices_);
   }
 
-  if (railCnt_ > 0)
-  {
-    while (railCnt_ > 0)
-    {
-      railCnt_--;
-      if (rails_[railCnt_] != NULL)
-      {
-        delete (rails_[railCnt_]);
-      }
-    }
-    free(rails_);
-  }
+  devices_.clear();
 
   addresses = pmbus_->smbus()->probeUnique(0x00);
-
-  // May be more than required. Can add code to trim based on deviceCnt_
-  // +1 and calloc so there is a terminating NULL
-  devices_ = (LT_PMBusDevice **) calloc(strlen((char *)addresses) + 1, sizeof(LT_PMBusDevice *));
 
   // Check each device type one by one. Trading generality and composability
   // for performance. For better performance, cache IDs or write decoder here
   // and then call detect on the correct device first time.
   for (i = 0; i < strlen((char *)addresses); i++)
   {
-
     if ((device = LT_PMBusDeviceMWDBU3200::detect(pmbus_, addresses[i])) != NULL)
-      devices_[deviceCnt_++] = device;
-//    else devices_[deviceCnt_++] = NULL;
-
+      devices_.push_back(device);
   }
-
-  // Get all the rails, while merging duplicates.
-  for (i = 0; i < deviceCnt_; i++)
-  {
-    LT_PMBusRail **rails;
-    LT_PMBusRail **new_rail;
-    void *m;
-    bool merged;
-
-    new_rail = rails = devices_[i]->getRails();
-
-    // Loop if device has rail support, and if there are rails to process.
-    while (new_rail != NULL && *new_rail != NULL)
-    {
-
-      // See if we are already in the list.
-      merged = false;
-      for (j = 0; j < railCnt_; j++)
-      {
-        if (rails_[j]->isMultiphase() && rails_[j]->getAddress() == (*new_rail)->getAddress())
-        {
-          rails_[j]->merge(*new_rail);
-          delete (*new_rail);
-          merged = true;
-          break;
-        }
-      }
-      if (!merged)
-      {
-        if (rails_ == NULL)
-          rails_ = (LT_PMBusRail **) malloc(sizeof(LT_PMBusRail *));
-        else
-        {
-          m = realloc(rails_, (railCnt_ + 1) * sizeof(LT_PMBusRail *));
-          if (m != NULL)
-//            free(m);
-//          else
-            rails_ = (LT_PMBusRail **) m;
-        }
-        if (rails_ != NULL)
-          rails_[railCnt_++] = *new_rail;
-      }
-
-      new_rail++;
-    }
-    delete rails;
-  }
-
-  rails_ = (LT_PMBusRail **) realloc(rails_, (railCnt_ + 1) * sizeof(LT_PMBusRail *));
-
-  rails_[railCnt_] = NULL;
 }

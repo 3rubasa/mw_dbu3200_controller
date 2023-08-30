@@ -25,27 +25,22 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef LT_PMBusDetect_H_
-#define LT_PMBusDetect_H_
+#ifndef LT_SMBusNoPec_H_
+#define LT_SMBusNoPec_H_
 
-#include "LT_PMBusDevice.h"
-#include "LT_PMBusRail.h"
-#include <vector>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
+#include "LT_SMBusBase.h"
 
-class LT_PMBusDetect
+class LT_SMBusNoPec : public LT_SMBusBase
 {
-  protected:
-    LT_PMBus *pmbus_;
-    std::vector<LT_PMBusDevice*> devices_;
 
   public:
-    LT_PMBusDetect(LT_PMBus *pmbus);
-    ~LT_PMBusDetect();
 
-    //! Detect devices on bus
-    void detect();
-
-    std::vector<LT_PMBusDevice*> getDevices();
+    LT_SMBusNoPec();
+    LT_SMBusNoPec(char *dev);
+    LT_SMBusNoPec(uint32_t speed);
 };
 
-#endif /* LT_PMBusDetect_H_ */
+#endif /* LT_SMBusNoPec_H_ */
