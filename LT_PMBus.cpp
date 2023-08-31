@@ -1568,7 +1568,7 @@ float LT_PMBus::readVout(uint8_t address, bool polling)
   {
     vout_L16 = pmbusReadWordWithPolling(address, READ_VOUT);        //! 1) Read READ_VOUT
     vout_mode = (LT_PMBusMath::lin16_t)(pmbusReadByteWithPolling(address, VOUT_MODE) & 0x1F);       //! 2) Read VOUT_MODE & 0x1F
-    return L16_to_Float_mode(address, vout_L16);            //! 3) Convert from Lin16
+    return L16_to_Float_mode(vout_mode, vout_L16);            //! 3) Convert from Lin16
   }
   else
   {
@@ -3207,17 +3207,17 @@ void LT_PMBus::disablePec(uint8_t address)
  */
 int LT_PMBus::waitForNotBusy(uint8_t address)
 {
+  std::this_thread::sleep_for(std::chrono::milliseconds(35));
   uint16_t timeout = 4096;
-  uint8_t mfr_common;
 
   while (timeout-- > 0)
   {
-    mfr_common = smbus_->readByte(address, MFR_COMMON);
+    uint8_t cap = smbus_->readByte(address, CAPABILITY);
     // If too busy to answer, poll again.
-    if (mfr_common == 0xFF)
-      continue;
-    if ((mfr_common  & (NOT_BUSY | NOT_TRANS | NOT_PENDING)) == (NOT_BUSY | NOT_TRANS | NOT_PENDING))
+    if (cap == 0x80) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(35));
       return 0;
+    }
   }
   return -1;
 }
@@ -3473,4 +3473,46 @@ uint16_t LT_PMBus::Float_to_L11(float input_val)
 
   // Compute value as exponent | mantissa
   return uExponent | uMantissa;
+}
+
+bool LT_PMBus::readOnOffConfig(uint8_t address,     //!< Slave address
+                          bool polling //!< true for polling
+                        )
+{
+  int8_t on_off_config;
+
+  // Read the output voltage as an L16
+  if (polling)
+  {
+    on_off_config = pmbusReadByteWithPolling(address, ON_OFF_CONFIG);
+  }
+  else
+  {
+    on_off_config = smbus_->readByte(address, ON_OFF_CONFIG);
+  }
+
+  return true;
+}
+
+
+void LT_PMBus::readMfrDate(uint8_t address,     //!< Slave address
+                          bool polling //!< true for polling
+                          ) 
+{
+  int result = 0;
+  uint8_t data[6];
+    // Read the output voltage as an L16
+
+  result = smbus_->readBlock(address, MFR_DATE, data, 6);
+
+
+  // if (polling)
+  // {
+    // TODO: implement polling
+    //mfr_date = pmbusReadBlockWithPolling(address, MFR_DATE);
+  // }
+  // else
+  // {
+    
+  //}
 }

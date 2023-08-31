@@ -85,7 +85,7 @@ class LT_PMBusDeviceMWDBU3200 : public LT_PMBusDeviceController
 
     uint8_t getNumPages(void)
     {
-      return 2;
+      return 1;
     }
 
     void enableFaultLog()

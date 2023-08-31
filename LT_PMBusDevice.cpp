@@ -260,3 +260,12 @@ void LT_PMBusDevice::marginOff()
 {
   pmbus_->marginOff(address_);
 }
+
+bool LT_PMBusDevice::readOnOffConfig(bool polling)
+{
+  return pmbus_->readOnOffConfig(address_, polling);
+}
+
+void LT_PMBusDevice::readMfrDate(bool polling) {
+  return pmbus_->readMfrDate(address_, polling);
+}

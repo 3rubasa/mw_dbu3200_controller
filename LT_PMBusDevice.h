@@ -252,6 +252,9 @@ class LT_PMBusDevice
      *
      */
     void marginOff();
+
+    bool readOnOffConfig(bool polling);
+    void readMfrDate(bool polling);
 };
 
 #endif /* LT_PMBusDevice_H_ */

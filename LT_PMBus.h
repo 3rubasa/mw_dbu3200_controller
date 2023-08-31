@@ -32,6 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdint.h>
 #include <string.h>
 #include <math.h>
+#include <thread>
 #ifdef DMALLOC
 #include <dmalloc.h>
 #endif
@@ -48,6 +49,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define WRITE_PROTECT           0x10
 #define STORE_USER_ALL          0x15
 #define RESTORE_USER_ALL        0x16
+#define CAPABILITY              0x19
 #define MFR_COMPARE_USER_ALL    0xF0
 #define SMBALERT_MASK           0x1B
 #define VOUT_MODE               0x20
@@ -98,6 +100,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define READ_PIN                0x97
 #define MFR_MODEL               0x9A    // LTC388X only
 #define MFR_REVISION            0x9B
+#define MFR_DATE                0x9D
 #define PMBUS_REVISION          0x98
 #define USER_DATA_03            0xB3    // Not LTC2978/A
 #define USER_DATA_04            0xB4    // Not LTC2978/A
@@ -1449,6 +1452,16 @@ class LT_PMBus
     //! Get speical ID
     uint16_t getMfrSpecialId(uint8_t address //!< Address
                              );
+
+    //! Get On/Off status
+    //! @return true means On
+    bool readOnOffConfig(uint8_t address,     //!< Slave address
+                          bool polling //!< true for polling
+                        );
+
+    void readMfrDate(uint8_t address,     //!< Slave address
+                          bool polling //!< true for polling
+                          );
 };
 
 #endif /* PMBUS_H_ */

@@ -33,6 +33,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "LT_PMBusMath.h"
 #include "LT_EEDataFaultLog.h"
 
+const uint8_t MWDBU3200_CAPABILITY=128; // This was determined experimentally by reading response of the CAPABILITY command
+
 //! class that handles LTC3884 fault logs.
 //! contains structs for interpreting the data read from the part.
 class LT_MWDBU3200FaultLog : public LT_EEDataFaultLog
