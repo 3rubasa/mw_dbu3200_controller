@@ -256,6 +256,19 @@ class LT_PMBusDevice
     bool readOnOffConfig(bool polling);
     void readMfrDate(bool polling);
     uint16_t readStatusWord(bool polling);
+
+    uint8_t readStatusVout(bool polling);
+    uint8_t readStatusIout(bool polling);
+    uint8_t readStatusInput(bool polling);
+
+    uint8_t readStatusTemp(bool polling);
+    uint8_t readStatusCml(bool polling);
+    uint8_t readStatusMfrSpecific(bool polling);
+    uint8_t readStatusFans_1_2(bool polling);
+
+    float readFanSpeed1(bool polling);
+    float readFanSpeed2(bool polling);
+
 };
 
 #endif /* LT_PMBusDevice_H_ */

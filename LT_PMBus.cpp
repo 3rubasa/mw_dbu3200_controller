@@ -2003,9 +2003,9 @@ float LT_PMBus::readExternalTemperature(uint8_t address, bool polling)
 
   // read the output current as an L11
   if (polling)
-    temp_L11 = pmbusReadWordWithPolling(address, READ_OTEMP);     //! 1) Read READ_OTEMP
+    temp_L11 = pmbusReadWordWithPolling(address, READ_TEMPERATURE_1);     //! 1) Read READ_TEMPERATURE_1
   else
-    temp_L11 = smbus_->readWord(address, READ_OTEMP);
+    temp_L11 = smbus_->readWord(address, READ_TEMPERATURE_1);
 
   // convert L11 value to floating point value
 #if USE_FAST_MATH
@@ -2103,8 +2103,8 @@ float LT_PMBus::readOtempWithPage(uint8_t address, uint8_t page)
   uint8_t data_out[2];
 
   data_out[0] = page;
-  data_out[1] = READ_OTEMP;
-  smbus_->writeReadBlock(address, PAGE_PLUS_READ, data_out, 2, data_in, 2);        //! 1)Read READ_OTEMP
+  data_out[1] = READ_TEMPERATURE_1;
+  smbus_->writeReadBlock(address, PAGE_PLUS_READ, data_out, 2, data_in, 2);        //! 1)Read READ_TEMPERATURE_1
   temp_L11 = (data_in[1] << 8) | data_in[0];
 #if USE_FAST_MATH
   return math_.lin11_to_float(temp_L11);      //! 2) Convert frmo Lin11
@@ -2125,7 +2125,7 @@ float LT_PMBus::readOtemp(uint8_t address)
   uint16_t temp_L11;
 
   // read the output current as an L11
-  temp_L11 = smbus_->readWord(address, READ_OTEMP);
+  temp_L11 = smbus_->readWord(address, READ_TEMPERATURE_1);
 
   // convert L11 value to floating point value
 #if USE_FAST_MATH
@@ -3534,3 +3534,164 @@ uint16_t LT_PMBus::readStatusWord(uint8_t address,     //!< Slave address
 
   return status_word;
   }
+
+
+uint8_t LT_PMBus::readStatusVout(uint8_t address,     //!< Slave address
+                          bool polling //!< true for polling
+                          )
+{
+    int8_t vout_status = 0;
+
+    // Read the output voltage as an L16
+    if (polling)
+    {
+      vout_status = pmbusReadByteWithPolling(address, STATUS_VOUT);
+    }
+    else
+    {
+      vout_status = smbus_->readByte(address, STATUS_VOUT);
+    }
+
+    return vout_status;
+  }
+
+
+uint8_t LT_PMBus::readStatusIout(uint8_t address,     //!< Slave address
+                          bool polling //!< true for polling
+                          )
+{
+    int8_t iout_status = 0;
+
+    // Read the output voltage as an L16
+    if (polling)
+    {
+      iout_status = pmbusReadByteWithPolling(address, STATUS_IOUT);
+    }
+    else
+    {
+      iout_status = smbus_->readByte(address, STATUS_IOUT);
+    }
+
+    return iout_status;
+  }
+
+uint8_t LT_PMBus::readStatusInput(uint8_t address,     //!< Slave address
+                          bool polling //!< true for polling
+                          )
+{
+    int8_t input_status = 0;
+
+    // Read the output voltage as an L16
+    if (polling)
+    {
+      input_status = pmbusReadByteWithPolling(address, STATUS_INPUT);
+    }
+    else
+    {
+      input_status = smbus_->readByte(address, STATUS_INPUT);
+    }
+
+    return input_status;
+}
+
+
+    uint8_t LT_PMBus::readStatusTemp(uint8_t address, bool polling)
+    {
+      int8_t temp_status = 0;
+
+    if (polling)
+    {
+      temp_status = pmbusReadByteWithPolling(address, STATUS_TEMP);
+    }
+    else
+    {
+      temp_status = smbus_->readByte(address, STATUS_TEMP);
+    }
+
+    return temp_status;
+}
+   
+    uint8_t LT_PMBus::readStatusCml(uint8_t address, bool polling)
+    {
+      int8_t cml_status = 0;
+
+      // Read the output voltage as an L16
+      if (polling)
+      {
+        cml_status = pmbusReadByteWithPolling(address, STATUS_CML);
+      }
+      else
+      {
+        cml_status = smbus_->readByte(address, STATUS_CML);
+      }
+
+    return cml_status;
+}
+uint8_t LT_PMBus::readStatusMfrSpecific(uint8_t address, bool polling)
+    {
+    int8_t mfr_specific_status = 0;
+
+    // Read the output voltage as an L16
+    if (polling)
+    {
+      mfr_specific_status = pmbusReadByteWithPolling(address, STATUS_MFR_SPECIFIC);
+    }
+    else
+    {
+      mfr_specific_status = smbus_->readByte(address, STATUS_MFR_SPECIFIC);
+    }
+
+    return mfr_specific_status;
+}
+uint8_t LT_PMBus::readStatusFans_1_2(uint8_t address, bool polling)
+{
+    int8_t fans_1_2_status = 0;
+
+    // Read the output voltage as an L16
+    if (polling)
+    {
+      fans_1_2_status = pmbusReadByteWithPolling(address, STATUS_FANS_1_2);
+    }
+    else
+    {
+      fans_1_2_status = smbus_->readByte(address, STATUS_FANS_1_2);
+    }
+
+    return fans_1_2_status;
+}
+
+float LT_PMBus::readFanSpeed1(uint8_t address, bool polling)
+{
+  float speed_L11;
+
+  // read the fan speed as an L11
+  if (polling)       
+    speed_L11 = pmbusReadWordWithPolling(address, READ_FAN_SPEED_1);
+  else
+    speed_L11 = smbus_->readWord(address, READ_FAN_SPEED_1);
+
+  // convert L11 value to floating point value
+#if USE_FAST_MATH
+  return math_.lin11_to_float(speed_L11);       //! 2) Convert from L11
+#else
+  return L11_to_Float(speed_L11);
+#endif
+}
+
+float LT_PMBus::readFanSpeed2(uint8_t address, bool polling)
+{
+  float speed_L11;
+
+  // read the fan speed as an L11
+  if (polling)        
+    speed_L11 = pmbusReadWordWithPolling(address, READ_FAN_SPEED_2);
+  else
+    speed_L11 = smbus_->readWord(address, READ_FAN_SPEED_2);
+
+  // convert L11 value to floating point value
+#if USE_FAST_MATH
+  return math_.lin11_to_float(speed_L11);       //! 2) Convert from L11
+#else
+  return L11_to_Float(speed_L11);
+#endif
+}

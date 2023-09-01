@@ -89,12 +89,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define STATUS_TEMP             0X7D
 #define STATUS_CML              0x7E
 #define STATUS_MFR_SPECIFIC     0x80
+#define STATUS_FANS_1_2         0x81
 #define READ_VIN                0x88
 #define READ_IIN                0x89
 #define READ_VOUT               0x8B
 #define READ_IOUT               0x8C
-#define READ_OTEMP              0x8D    // This is internal for LTC297X
+#define READ_TEMPERATURE_1      0x8D    
 #define READ_ITEMP              0x8E
+#define READ_FAN_SPEED_1        0x90
+#define READ_FAN_SPEED_2        0x91
 #define READ_DUTY_CYCLE         0x94    // Controllers only, sans LTC3884
 #define READ_POUT               0x96
 #define READ_PIN                0x97
@@ -1463,9 +1466,18 @@ class LT_PMBus
                           bool polling //!< true for polling
                           );
 
-    uint16_t readStatusWord(uint8_t address,     //!< Slave address
-                          bool polling //!< true for polling
-                          );
+    uint16_t readStatusWord(uint8_t address, bool polling);
+    uint8_t readStatusVout(uint8_t address, bool polling);
+    uint8_t readStatusIout(uint8_t address,bool polling);
+    uint8_t readStatusInput(uint8_t address, bool polling);
+
+    uint8_t readStatusTemp(uint8_t address, bool polling);
+    uint8_t readStatusCml(uint8_t address, bool polling);
+    uint8_t readStatusMfrSpecific(uint8_t address, bool polling);
+    uint8_t readStatusFans_1_2(uint8_t address, bool polling);
+
+    float readFanSpeed1(uint8_t address, bool polling);
+    float readFanSpeed2(uint8_t address, bool polling);
 };
 
 #endif /* PMBUS_H_ */

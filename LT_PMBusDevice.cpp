@@ -273,3 +273,33 @@ void LT_PMBusDevice::readMfrDate(bool polling) {
 uint16_t LT_PMBusDevice::readStatusWord(bool polling) {
   return pmbus_->readStatusWord(address_, polling);
 }
+
+uint8_t LT_PMBusDevice:: readStatusVout(bool polling) {
+    return pmbus_->readStatusVout(address_, polling);
+}
+uint8_t LT_PMBusDevice:: readStatusIout(bool polling) {
+  return pmbus_->readStatusIout(address_, polling);
+}
+uint8_t LT_PMBusDevice::readStatusInput(bool polling){
+  return pmbus_->readStatusInput(address_, polling);
+}
+
+uint8_t LT_PMBusDevice::readStatusTemp(bool polling){
+  return pmbus_->readStatusTemp(address_, polling);  
+}
+uint8_t LT_PMBusDevice::readStatusCml(bool polling){
+  return pmbus_->readStatusCml(address_, polling);  
+}
+uint8_t LT_PMBusDevice::readStatusMfrSpecific(bool polling){
+  return pmbus_->readStatusMfrSpecific(address_, polling);  
+}
+uint8_t LT_PMBusDevice::readStatusFans_1_2(bool polling){
+  return pmbus_->readStatusFans_1_2(address_, polling);  
+}
+
+float LT_PMBusDevice::readFanSpeed1(bool polling){
+  return pmbus_->readFanSpeed1(address_, polling);
+}
+float LT_PMBusDevice::readFanSpeed2(bool polling){
+  return pmbus_->readFanSpeed2(address_, polling);
+}
