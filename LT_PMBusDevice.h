@@ -255,6 +255,7 @@ class LT_PMBusDevice
 
     bool readOnOffConfig(bool polling);
     void readMfrDate(bool polling);
+    uint16_t readStatusWord(bool polling);
 };
 
 #endif /* LT_PMBusDevice_H_ */

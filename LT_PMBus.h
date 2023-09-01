@@ -1462,6 +1462,10 @@ class LT_PMBus
     void readMfrDate(uint8_t address,     //!< Slave address
                           bool polling //!< true for polling
                           );
+
+    uint16_t readStatusWord(uint8_t address,     //!< Slave address
+                          bool polling //!< true for polling
+                          );
 };
 
 #endif /* PMBUS_H_ */

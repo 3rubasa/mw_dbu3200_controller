@@ -20,7 +20,9 @@ void print_vout(const std::vector<LT_PMBusDevice*>& devices);
 void print_on_off_config(LT_PMBusDevice* device);
 
 // MFR_DATE
-void print_mfr_date(LT_PMBusDevice* device);
+//void print_mfr_date(LT_PMBusDevice* device);
+
+void print_status_word(LT_PMBusDevice* device);
 
 int main(int, char**){
     std::cout << "Hello, from pmbus1!\n";
@@ -46,11 +48,49 @@ int main(int, char**){
     }
 
     print_vout(devices);
+    print_status_word(devices[0]);
    // print_on_off_config(devices[0]);
-   print_mfr_date(devices[0]);
+   //print_mfr_date(devices[0]);
     std::cout << "This is the end!\n";
 }
 
+void print_status_word(LT_PMBusDevice* device) {
+    uint16_t status = device->readStatusWord(true);
+    std::cout << "Status word: 0x" << std::hex << status << std::endl;
+    if (status & 0x800)
+        std::cout << "  Power NOT Good!" << std::endl;
+    else 
+        std::cout << "  Power is Good" << std::endl;
+
+    if (status & 0x2)
+        std::cout << "  FAULT: A communications, memory or logic fault has occurred!" << std::endl;
+    if (status & 0x4)
+        std::cout << "  FAULT: A temperature fault or warning has occurred!" << std::endl;
+    if (status & 0x8)
+        std::cout << "  FAULT: An input undervoltage fault has occurred!" << std::endl;
+    if (status & 0x10)
+        std::cout << "  FAULT: An output overcurrent fault has occurred!" << std::endl;
+    if (status & 0x20)
+        std::cout << "  FAULT: An output overvoltage fault has occurred!" << std::endl;
+    if (status & 0x40)
+        std::cout << "  Unit is not providing power to the output, regardless of the reason, including simply not being enabled" << std::endl;
+    if (status & 0x80)
+        std::cout << "  Device was busy and unable to respond" << std::endl;
+    if (status & 0x100)
+        std::cout << "  FAULT: UNKNOWN FAULT!" << std::endl;
+    if (status & 0x200)
+        std::cout << "  STATUS_OTHER is set!" << std::endl;
+    if (status & 0x400)
+        std::cout << "  FAULT: A fan or airflow fault or warning has occurred!" << std::endl;
+    if (status & 0x1000)
+        std::cout << "  FAULT: A manufacturer specific fault or warning has occurred!" << std::endl;
+    if (status & 0x2000)
+        std::cout << "  FAULT: An input voltage, input current, or input power fault or warning has occurred!" << std::endl;
+    if (status & 0x4000)
+        std::cout << "  FAULT: An output current or output power fault or warning has occurred!" << std::endl;
+    if (status & 0x8000)
+        std::cout << "  FAULT: An output voltage fault or warning has occurred!" << std::endl;
+}
 
 void print_vout(const std::vector<LT_PMBusDevice*>& devices)
 {

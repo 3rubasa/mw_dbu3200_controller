@@ -269,3 +269,7 @@ bool LT_PMBusDevice::readOnOffConfig(bool polling)
 void LT_PMBusDevice::readMfrDate(bool polling) {
   return pmbus_->readMfrDate(address_, polling);
 }
+
+uint16_t LT_PMBusDevice::readStatusWord(bool polling) {
+  return pmbus_->readStatusWord(address_, polling);
+}

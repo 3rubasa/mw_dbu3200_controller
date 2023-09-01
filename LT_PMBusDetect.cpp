@@ -63,7 +63,7 @@ void LT_PMBusDetect::detect ()
 
   devices_.clear();
 
-  addresses = pmbus_->smbus()->probeUnique(0x00);
+  addresses = pmbus_->smbus()->probeUnique(CAPABILITY);
 
   // Check each device type one by one. Trading generality and composability
   // for performance. For better performance, cache IDs or write decoder here

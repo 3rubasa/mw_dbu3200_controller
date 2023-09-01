@@ -180,7 +180,6 @@ class LT_SMBus
     //! @return array of unique addresses (no global addresses)
     virtual uint8_t *probeUnique(uint8_t command    //!< Command byte
                                 ) = 0;
-
 };
 
 #endif /* LT_SMBus_H_ */

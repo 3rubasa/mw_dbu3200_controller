@@ -3516,3 +3516,21 @@ void LT_PMBus::readMfrDate(uint8_t address,     //!< Slave address
     
   //}
 }
+
+uint16_t LT_PMBus::readStatusWord(uint8_t address,     //!< Slave address
+                          bool polling)
+  {
+       int16_t status_word = 0;
+
+  // Read the output voltage as an L16
+  if (polling)
+  {
+    status_word = pmbusReadWordWithPolling(address, STATUS_WORD);
+  }
+  else
+  {
+    status_word = smbus_->readWord(address, STATUS_WORD);
+  }
+
+  return status_word;
+  }
