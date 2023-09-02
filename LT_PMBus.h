@@ -1458,7 +1458,7 @@ class LT_PMBus
 
     //! Get On/Off status
     //! @return true means On
-    bool readOnOffConfig(uint8_t address,     //!< Slave address
+    uint8_t readOnOffConfig(uint8_t address,     //!< Slave address
                           bool polling //!< true for polling
                         );
 
@@ -1478,6 +1478,9 @@ class LT_PMBus
 
     float readFanSpeed1(uint8_t address, bool polling);
     float readFanSpeed2(uint8_t address, bool polling);
+
+    void immediateOff(uint8_t address, bool polling);
+      void immediateOn(uint8_t address, bool polling);
 };
 
 #endif /* PMBUS_H_ */

@@ -253,7 +253,7 @@ class LT_PMBusDevice
      */
     void marginOff();
 
-    bool readOnOffConfig(bool polling);
+    uint8_t readOnOffConfig(bool polling);
     void readMfrDate(bool polling);
     uint16_t readStatusWord(bool polling);
 
@@ -269,6 +269,10 @@ class LT_PMBusDevice
     float readFanSpeed1(bool polling);
     float readFanSpeed2(bool polling);
 
+    void immediateOff(bool polling);
+    void immediateOn(bool polling);
+
+    float readIoutOvercurrent(bool polling);
 };
 
 #endif /* LT_PMBusDevice_H_ */

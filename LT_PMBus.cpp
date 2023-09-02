@@ -3208,7 +3208,8 @@ void LT_PMBus::disablePec(uint8_t address)
 int LT_PMBus::waitForNotBusy(uint8_t address)
 {
   std::this_thread::sleep_for(std::chrono::milliseconds(35));
-  uint16_t timeout = 4096;
+  //uint16_t timeout = 4096;
+  uint16_t timeout = 10;
 
   while (timeout-- > 0)
   {
@@ -3475,23 +3476,23 @@ uint16_t LT_PMBus::Float_to_L11(float input_val)
   return uExponent | uMantissa;
 }
 
-bool LT_PMBus::readOnOffConfig(uint8_t address,     //!< Slave address
+uint8_t LT_PMBus::readOnOffConfig(uint8_t address,     //!< Slave address
                           bool polling //!< true for polling
                         )
 {
-  int8_t on_off_config;
+  uint8_t on_off_config;
 
   // Read the output voltage as an L16
   if (polling)
   {
-    on_off_config = pmbusReadByteWithPolling(address, ON_OFF_CONFIG);
+    on_off_config = pmbusReadByteWithPolling(address, 0x47);
   }
   else
   {
-    on_off_config = smbus_->readByte(address, ON_OFF_CONFIG);
+    on_off_config = smbus_->readByte(address, 0x47);
   }
 
-  return true;
+  return on_off_config;
 }
 
 
@@ -3540,7 +3541,7 @@ uint8_t LT_PMBus::readStatusVout(uint8_t address,     //!< Slave address
                           bool polling //!< true for polling
                           )
 {
-    int8_t vout_status = 0;
+    uint8_t vout_status = 0;
 
     // Read the output voltage as an L16
     if (polling)
@@ -3560,7 +3561,7 @@ uint8_t LT_PMBus::readStatusIout(uint8_t address,     //!< Slave address
                           bool polling //!< true for polling
                           )
 {
-    int8_t iout_status = 0;
+    uint8_t iout_status = 0;
 
     // Read the output voltage as an L16
     if (polling)
@@ -3579,7 +3580,7 @@ uint8_t LT_PMBus::readStatusInput(uint8_t address,     //!< Slave address
                           bool polling //!< true for polling
                           )
 {
-    int8_t input_status = 0;
+    uint8_t input_status = 0;
 
     // Read the output voltage as an L16
     if (polling)
@@ -3597,7 +3598,7 @@ uint8_t LT_PMBus::readStatusInput(uint8_t address,     //!< Slave address
 
     uint8_t LT_PMBus::readStatusTemp(uint8_t address, bool polling)
     {
-      int8_t temp_status = 0;
+      uint8_t temp_status = 0;
 
     if (polling)
     {
@@ -3613,7 +3614,7 @@ uint8_t LT_PMBus::readStatusInput(uint8_t address,     //!< Slave address
    
     uint8_t LT_PMBus::readStatusCml(uint8_t address, bool polling)
     {
-      int8_t cml_status = 0;
+      uint8_t cml_status = 0;
 
       // Read the output voltage as an L16
       if (polling)
@@ -3629,7 +3630,7 @@ uint8_t LT_PMBus::readStatusInput(uint8_t address,     //!< Slave address
 }
 uint8_t LT_PMBus::readStatusMfrSpecific(uint8_t address, bool polling)
     {
-    int8_t mfr_specific_status = 0;
+    uint8_t mfr_specific_status = 0;
 
     // Read the output voltage as an L16
     if (polling)
@@ -3645,7 +3646,7 @@ uint8_t LT_PMBus::readStatusMfrSpecific(uint8_t address, bool polling)
 }
 uint8_t LT_PMBus::readStatusFans_1_2(uint8_t address, bool polling)
 {
-    int8_t fans_1_2_status = 0;
+    uint8_t fans_1_2_status = 0;
 
     // Read the output voltage as an L16
     if (polling)
@@ -3694,4 +3695,18 @@ float LT_PMBus::readFanSpeed2(uint8_t address, bool polling)
 #else
   return L11_to_Float(speed_L11);
 #endif
+}
+
+void LT_PMBus::immediateOff(uint8_t address, bool polling) {
+  if (polling)        
+    pmbusWriteByteWithPolling(address, OPERATION, 0x0);
+  else
+    smbus_->writeByte(address, OPERATION, 0x0);  
+}
+
+void LT_PMBus::immediateOn(uint8_t address, bool polling) {
+  if (polling)        
+    pmbusWriteByteWithPolling(address, OPERATION, 0x80);
+  else
+    smbus_->writeByte(address, OPERATION, 0x80);  
 }

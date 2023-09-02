@@ -409,6 +409,8 @@ uint8_t *LT_SMBusBase::probeUnique(uint8_t command)
     else if (result < 0)
       throw LT_Exception("Probe Unique: fail address");
 
+    //result = i2c_smbus_write_quick(LT_SMBusBase::file_, I2C_SMBUS_WRITE);
+
     result = i2c_smbus_read_byte_data(LT_SMBusBase::file_, command);
 
     //printf("probe data result %d\n", result);

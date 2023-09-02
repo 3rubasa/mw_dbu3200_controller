@@ -16,6 +16,7 @@
 #include "LT_PMBusDetect.h"
 
 
+// ON_OFF_CONFIG byte is equal to 0x1F
 
 char *dev = (char*)"/dev/i2c-1";
 
@@ -50,9 +51,6 @@ int print_read_fan_speed_1(LT_PMBusDevice* device, std::ostream& os);
 int print_read_fan_speed_2(LT_PMBusDevice* device, std::ostream& os);
 
 int print_status_word(LT_PMBusDevice* device, std::ostream& os);
-int print_divider();
-// ON_OFF_CONFIG
-void print_on_off_config(LT_PMBusDevice* device, std::ostream& os);
 
 // MFR_DATE
 //void print_mfr_date(LT_PMBusDevice* device, std::ostream& os);
@@ -66,6 +64,7 @@ void print_status_temp(LT_PMBusDevice* device, std::ostream& os);
 void print_status_cml(LT_PMBusDevice* device, std::ostream& os);
 void print_status_mfr_specific(LT_PMBusDevice* device, std::ostream& os);
 void print_status_fans_1_2(LT_PMBusDevice* device, std::ostream& os);
+void print_read_iout_oc(LT_PMBusDevice* device, std::ostream& os);
 
 int main(int, char**){
     std::cout << "Hello, from pmbus1!\n";
@@ -90,9 +89,12 @@ int main(int, char**){
         std::cout << "}" << std::endl;
     }
 
+    devices[0]->setSpeed(100000);
     std::cout << "***********************************************************" << std::endl;
 
     std::string output;
+
+    //devices[0]->immediateOff(true);
 
     while (true) {
         std::stringstream sso;
@@ -111,11 +113,15 @@ int main(int, char**){
         print_status_cml(devices[0], sso);
         print_status_mfr_specific(devices[0], sso);
         print_status_fans_1_2(devices[0], sso);
+        print_read_iout_oc(devices[0], sso);
 
-        std::this_thread::sleep_for(std::chrono::milliseconds{100});
+        std::this_thread::sleep_for(std::chrono::milliseconds{1000});
 
         system("clear");
         std::cout << sso.str();
+
+        //uint8_t cfg = devices[0]->readOnOffConfig(true);
+        //std::cout << std::endl << "ON_OFF_CONFIG: " << (int)(devices[0]->readOnOffConfig(true)) << std::endl;
     }
 
     std::cout << "This is the end!\n";
@@ -314,10 +320,7 @@ void print_mfr_date(LT_PMBusDevice* device, std::ostream& os) {
     device->readMfrDate(true);
 }
 
-void print_on_off_config(LT_PMBusDevice* device, std::ostream& os) {
-    bool on = device->readOnOffConfig(true);
-    if (on)
-        os << "State: ON" << std::endl;
-    else
-        os << "State: OFF" << std::endl;
+
+void print_read_iout_oc(LT_PMBusDevice* device, std::ostream& os){
+    os << "IOUT OC = " << device->readIoutOvercurrent(true) << " Amp" << std::endl;
 }

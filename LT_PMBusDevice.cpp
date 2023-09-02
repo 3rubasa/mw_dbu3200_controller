@@ -261,7 +261,7 @@ void LT_PMBusDevice::marginOff()
   pmbus_->marginOff(address_);
 }
 
-bool LT_PMBusDevice::readOnOffConfig(bool polling)
+uint8_t LT_PMBusDevice::readOnOffConfig(bool polling)
 {
   return pmbus_->readOnOffConfig(address_, polling);
 }
@@ -302,4 +302,16 @@ float LT_PMBusDevice::readFanSpeed1(bool polling){
 }
 float LT_PMBusDevice::readFanSpeed2(bool polling){
   return pmbus_->readFanSpeed2(address_, polling);
+}
+
+void LT_PMBusDevice::immediateOff(bool polling) {
+  return pmbus_->immediateOff(address_, polling);
+}
+
+void LT_PMBusDevice::immediateOn(bool polling) {
+  return pmbus_->immediateOn(address_, polling);
+}
+
+float LT_PMBusDevice::readIoutOvercurrent(bool polling){
+  return pmbus_->getIoutOc(address_, polling);
 }

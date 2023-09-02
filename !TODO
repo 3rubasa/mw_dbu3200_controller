@@ -18,20 +18,17 @@ READ_IOUT - DONE
 READ_TEMPERATURE_1 - DONE
 READ_FAN_SPEED_1 - DONE
 READ_FAN_SPEED_2 - DONE
+OPERATION     - DONE
+IOUT_OC_FAULT_LIMIT - DONE - 110A
 
+IOUT_OC_FAULT_RESPONSE - 0x85, checked experimentally
 PMBUS_REVISION - should be 11h meaning PMBus Rev 1.1
-
-
-
-OPERATION     - TODO
-ON_OFF_CONFIG - TODO
 VOUT_MODE     - used as an intermediate step in voltage values conversion
+ON_OFF_CONFIG - is equal to 0x1F, checked experimentally
+
+
 VOUT_COMMAND  - TODO
 VOUT_TRIM     - TODO
-IOUT_OC_FAULT_LIMIT - TODO
-IOUT_OC_FAULT_RESPONSE - TODO
-
-
 
 
 MFR_ID
