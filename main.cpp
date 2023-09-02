@@ -15,10 +15,203 @@
 #include "LT_PMBusRail.h"
 #include "LT_PMBusDetect.h"
 
+#include "i2c-dev.h"
+#include "i2cbusses.h"
+
+
+#define BUS 4 // /dev/i2c-4
+#define DEV_ADDR 0x47
+#define VOUT_MODE_VAL 0x17
+
+uint8_t ReadByte(uint8_t command) {
+    char filename[20];
+    int file = open_i2c_dev(BUS, filename, sizeof(filename), 0);
+	if (file < 0 || set_slave_addr(file, DEV_ADDR, 0)) {
+        std::cout << "Failed to open i2c_dev or set slave addr, exiting...";
+		exit(1);
+    }
+
+    // Set PEC
+	if (ioctl(file, I2C_PEC, 1) < 0) {
+		std::cout << "Error: Could not set PEC: " << strerror(errno);
+		close(file);
+		exit(1);
+	}
+
+    unsigned int res = i2c_smbus_read_byte_data(file, command);
+
+	close(file);
+
+	if (res < 0) {
+		std::cout << "Error: Read failed";
+		exit(2);
+	}
+
+    return uint8_t(res);
+}
+
+uint16_t ReadWord(uint16_t command) {
+    char filename[20];
+    int file = open_i2c_dev(BUS, filename, sizeof(filename), 0);
+	if (file < 0 || set_slave_addr(file, DEV_ADDR, 0)) {
+        std::cout << "Failed to open i2c_dev or set slave addr, exiting...";
+		exit(1);
+    }
+
+    // Set PEC
+	if (ioctl(file, I2C_PEC, 1) < 0) {
+		std::cout << "Error: Could not set PEC: " << strerror(errno);
+		close(file);
+		exit(1);
+	}
+
+    unsigned int res = i2c_smbus_read_word_data(file, command);
+
+	close(file);
+
+	if (res < 0) {
+		std::cout << "Error: Read failed";
+		exit(2);
+	}
+
+    return uint16_t(res);
+}
+
+int ReadBlock(uint8_t command, uint8_t *block, uint16_t block_size)
+{
+    char filename[20];
+    int file = open_i2c_dev(BUS, filename, sizeof(filename), 0);
+	if (file < 0 || set_slave_addr(file, DEV_ADDR, 0)) {
+        std::cout << "Failed to open i2c_dev or set slave addr, exiting...";
+		exit(1);
+    }
+
+    // Set PEC
+	if (ioctl(file, I2C_PEC, 1) < 0) {
+		std::cout << "Error: Could not set PEC: " << strerror(errno);
+		close(file);
+		exit(1);
+	}
+
+    int count = i2c_smbus_read_i2c_block_data(file, command, block_size, block);
+	close(file);
+
+	if (count == -1) {
+		std::cout << "Error: Read block failed: " << strerror(errno);
+        exit(1);
+	}
+
+    return count;
+}
+
+uint16_t WriteWord(uint16_t command, unsigned short value) {
+    char filename[20];
+    int file = open_i2c_dev(BUS, filename, sizeof(filename), 0);
+	if (file < 0 || set_slave_addr(file, DEV_ADDR, 0)) {
+        std::cout << "Failed to open i2c_dev or set slave addr, exiting...";
+		exit(1);
+    }
+
+    // Set PEC
+	if (ioctl(file, I2C_PEC, 1) < 0) {
+		std::cout << "Error: Could not set PEC: " << strerror(errno);
+		close(file);
+		exit(1);
+	}
+
+    unsigned int res = i2c_smbus_write_word_data(file, DEV_ADDR, value);
+
+	close(file);
+
+	if (res < 0) {
+		std::cout << "Error: Write failed: " << strerror(errno);
+		exit(2);
+	}
+
+    return uint16_t(res);
+}
+
+uint16_t Float_to_L16_mode(uint8_t vout_mode, float input_val)
+{
+  // Assume Linear 16, pull out 5 bits of exponent, and use signed value.
+  int8_t exponent = vout_mode & 0x1F;
+
+  // Sign extend exponent from 5 to 8 bits
+  if (exponent > 0x0F) exponent |= 0xE0;
+
+  // Scale the value to a mantissa based on the exponent
+  uint16_t mantissa = (uint16_t)(input_val / pow(2.0, exponent));
+
+  return mantissa;
+}
+
+float readVin() {
+    return (new LT_PMBusMath())->lin11_to_float(ReadWord(READ_VIN));
+}
+
+float readVout() {
+    return (new LT_PMBusMath())->lin16_to_float(ReadWord(READ_VOUT), (LT_PMBusMath::lin16_t)(VOUT_MODE_VAL & 0x1F));
+}
+
+float readIout() {
+    return (new LT_PMBusMath())->lin11_to_float(ReadWord(READ_IOUT));
+}
+
+float readTemp1() {
+    return (new LT_PMBusMath())->lin11_to_float(ReadWord(READ_TEMPERATURE_1));
+}
+
+float readFanSpeed1() {
+    return (new LT_PMBusMath())->lin11_to_float(ReadWord(READ_FAN_SPEED_1));
+}
+
+float readFanSpeed2() {
+    return (new LT_PMBusMath())->lin11_to_float(ReadWord(READ_FAN_SPEED_2));
+}
+
+uint16_t readStatusWord() {
+    return ReadWord(STATUS_WORD);
+}
+
+uint8_t readStatusVout() {
+    return ReadByte(STATUS_VOUT);
+}
+
+uint8_t readStatusIout() {
+    return ReadByte(STATUS_IOUT);
+}
+
+uint8_t readStatusInput() {
+    return ReadByte(STATUS_INPUT);
+}
+
+uint8_t readStatusTemp() {
+    return ReadByte(STATUS_TEMP);
+}
+
+uint8_t readStatusCml() {
+    return ReadByte(STATUS_CML);
+}
+
+uint8_t readStatusMfrSpecific() {
+    return ReadByte(STATUS_MFR_SPECIFIC);
+}
+
+uint8_t readStatusFans_1_2() {
+    return ReadByte(STATUS_FANS_1_2);
+}
+
+float readIoutOvercurrent() {
+    return (new LT_PMBusMath())->lin11_to_float(ReadWord(IOUT_OC_FAULT_LIMIT));
+}
+
+float readVoutTrim() {
+    return (new LT_PMBusMath())->lin16_to_float(ReadWord(0x22), (LT_PMBusMath::lin16_t)(VOUT_MODE_VAL & 0x1F));
+}
 
 // ON_OFF_CONFIG byte is equal to 0x1F
 
-char *dev = (char*)"/dev/i2c-1";
+char *dev = (char*)"/dev/i2c-4";
 
 enum class MESSAGE_COLOR {
     Red,
@@ -43,77 +236,41 @@ std::string FormatMessage(const std::string& message, MESSAGE_COLOR color) {
     }
 }
 
-int print_read_vin(LT_PMBusDevice* device, std::ostream& os);
-int print_read_vout(LT_PMBusDevice* device, std::ostream& os);
-int print_read_iout(LT_PMBusDevice* device, std::ostream& os);
-int print_read_temp_1(LT_PMBusDevice* device, std::ostream& os);
-int print_read_fan_speed_1(LT_PMBusDevice* device, std::ostream& os);
-int print_read_fan_speed_2(LT_PMBusDevice* device, std::ostream& os);
-
-int print_status_word(LT_PMBusDevice* device, std::ostream& os);
-
-// MFR_DATE
-//void print_mfr_date(LT_PMBusDevice* device, std::ostream& os);
-
-
-void print_status_vout(LT_PMBusDevice* device, std::ostream& os);
-void print_status_iout(LT_PMBusDevice* device, std::ostream& os);
-void print_status_input(LT_PMBusDevice* device, std::ostream& os);
-
-void print_status_temp(LT_PMBusDevice* device, std::ostream& os);
-void print_status_cml(LT_PMBusDevice* device, std::ostream& os);
-void print_status_mfr_specific(LT_PMBusDevice* device, std::ostream& os);
-void print_status_fans_1_2(LT_PMBusDevice* device, std::ostream& os);
-void print_read_iout_oc(LT_PMBusDevice* device, std::ostream& os);
+int print_read_vin(std::ostream& os);
+int print_read_vout(std::ostream& os);
+int print_read_iout(std::ostream& os);
+int print_read_temp_1(std::ostream& os);
+int print_read_fan_speed_1(std::ostream& os);
+int print_read_fan_speed_2(std::ostream& os);
+int print_status_word(std::ostream& os);
+void print_status_vout(std::ostream& os);
+void print_status_iout(std::ostream& os);
+void print_status_input(std::ostream& os);
+void print_status_temp(std::ostream& os);
+void print_status_cml(std::ostream& os);
+void print_status_mfr_specific(std::ostream& os);
+void print_status_fans_1_2(std::ostream& os);
+void print_read_iout_oc(std::ostream& os);
 
 int main(int, char**){
-    std::cout << "Hello, from pmbus1!\n";
-    std::cout << "Using I2C device: " << dev << std::endl;
-
-    std::shared_ptr<LT_SMBusNoPec> smbusNoPec(new LT_SMBusNoPec(dev));
-    std::shared_ptr<LT_SMBusPec> smbusPec(new LT_SMBusPec(dev));
-    std::shared_ptr<LT_PMBus> pmbusNoPec(new LT_PMBus(smbusNoPec.get()));
-    std::shared_ptr<LT_PMBus> pmbusPec(new LT_PMBus(smbusPec.get()));
-
-    std::shared_ptr<LT_SMBus> smbus = smbusNoPec;
-    std::shared_ptr<LT_PMBus> pmbus = pmbusNoPec;
-
-    std::shared_ptr<LT_PMBusDetect> detector(new LT_PMBusDetect(pmbus.get()));
-    detector->detect();
-    std::vector<LT_PMBusDevice*> devices = detector->getDevices();
-
-    std::cout << "Found " << devices.size() << " devices" << std::endl;
-    for (auto d: devices) {
-        std::cout << "{" << std::endl;
-        std::cout << "  address: 0x" << std::hex << (int)(d->getAddress()) << std::endl;
-        std::cout << "}" << std::endl;
-    }
-
-    devices[0]->setSpeed(100000);
-    std::cout << "***********************************************************" << std::endl;
-
-    std::string output;
-
-    //devices[0]->immediateOff(true);
-
     while (true) {
         std::stringstream sso;
-        print_read_vin(devices[0], sso);
-        print_read_vout(devices[0], sso);
-        print_read_iout(devices[0], sso);
-        print_read_temp_1(devices[0], sso);
-        print_read_fan_speed_1(devices[0], sso);
-        print_read_fan_speed_2(devices[0], sso);
+        print_read_vin(sso);
+        print_read_vout(sso);
+        print_read_iout(sso);
+        print_read_temp_1(sso);
+        print_read_fan_speed_1(sso);
+        print_read_fan_speed_2(sso);
 
-        print_status_word(devices[0], sso);
-        print_status_vout(devices[0], sso);
-        print_status_iout(devices[0], sso);
-        print_status_input(devices[0], sso);
-        print_status_temp(devices[0], sso);
-        print_status_cml(devices[0], sso);
-        print_status_mfr_specific(devices[0], sso);
-        print_status_fans_1_2(devices[0], sso);
-        print_read_iout_oc(devices[0], sso);
+        print_status_word(sso);
+        print_status_vout(sso);
+        print_status_iout(sso);
+        print_status_input(sso);
+        print_status_temp(sso);
+        print_status_cml(sso);
+        print_status_mfr_specific(sso);
+        print_status_fans_1_2(sso);
+        print_read_iout_oc(sso);
 
         std::this_thread::sleep_for(std::chrono::milliseconds{1000});
 
@@ -128,37 +285,37 @@ int main(int, char**){
 }
 
 
-int print_read_vin(LT_PMBusDevice* device, std::ostream& os) {
-    os << "VIN  = " << device->readVin(true) << " V AC NOTE: No reading below 10V"<< std::endl;
+int print_read_vin(std::ostream& os) {
+    os << "VIN  = " << readVin() << " V AC NOTE: No reading below 10V"<< std::endl;
     return 1;
 }
-int print_read_vout(LT_PMBusDevice* device, std::ostream& os) {
-    os << "VOUT = " << device->readVout(true) << "V DC" << std::endl;
+int print_read_vout(std::ostream& os) {
+    os << "VOUT = " << readVout() << "V DC" << std::endl;
     return 1;
 }
-int print_read_iout(LT_PMBusDevice* device, std::ostream& os) {
-    os << "IOUT = " << device->readIout(true) << " A DC NOTE: No reading below 5.32Amp" << std::endl;
+int print_read_iout(std::ostream& os) {
+    os << "IOUT = " << readIout() << " A DC NOTE: No reading below 5.32Amp" << std::endl;
     return 1;
 }
-int print_read_temp_1(LT_PMBusDevice* device, std::ostream& os) {
-    os << "TEMP = " << device->readExternalTemperature(true) << " Celsius NOTE: this is the temperature of the device" << std::endl;
+int print_read_temp_1(std::ostream& os) {
+    os << "TEMP = " << readTemp1() << " Celsius NOTE: this is the temperature of the device" << std::endl;
     return 1;
 }
-int print_read_fan_speed_1(LT_PMBusDevice* device, std::ostream& os) {
-    os << "FAN1 = " << device->readFanSpeed1(true) << " RPM NOTE: No reading below 2000 RPM" << std::endl;
+int print_read_fan_speed_1(std::ostream& os) {
+    os << "FAN1 = " << readFanSpeed1() << " RPM NOTE: No reading below 2000 RPM" << std::endl;
     return 1;
 }
-int print_read_fan_speed_2(LT_PMBusDevice* device, std::ostream& os) {
-    os << "FAN2 = " << device->readFanSpeed2(true) << " RPM NOTE: No reading below 2000 RPM" << std::endl;
+int print_read_fan_speed_2(std::ostream& os) {
+    os << "FAN2 = " << readFanSpeed2() << " RPM NOTE: No reading below 2000 RPM" << std::endl;
     return 1;
 }
 
-int print_status_word(LT_PMBusDevice* device, std::ostream& os) {
+int print_status_word(std::ostream& os) {
     //The STATUS_WORD command returns two bytes of information with a summary of the unit’s fault condition. 
     // Based on the information in these bytes, the host can get more information by reading the appropriate status registers.
 
     int lines_count = 0;
-    uint16_t status = device->readStatusWord(true);
+    uint16_t status = readStatusWord();
     os << "Status word: 0x" << std::hex << status << std::endl;
     lines_count++;
     if (status & 0x800)
@@ -199,8 +356,8 @@ int print_status_word(LT_PMBusDevice* device, std::ostream& os) {
     return lines_count;
 }
 
-void print_status_temp(LT_PMBusDevice* device, std::ostream& os){
-    uint8_t status = device->readStatusTemp(true);
+void print_status_temp(std::ostream& os){
+    uint8_t status = readStatusTemp();
     os << "Status TEMP: 0x" << std::hex << (int)status << std::endl;
     if (status & 0x10)
         os << "  FAULT: Undertemperature fault!" << std::endl;
@@ -212,8 +369,8 @@ void print_status_temp(LT_PMBusDevice* device, std::ostream& os){
         os << "  FAULT: Overtemperature Fault!" << std::endl;
 }
 
-void print_status_cml(LT_PMBusDevice* device, std::ostream& os){
-    uint8_t status = device->readStatusCml(true);
+void print_status_cml(std::ostream& os){
+    uint8_t status = readStatusCml();
     os << "Status CML: 0x" << std::hex << (int)status << std::endl;
     if (status & 0x1)
         os << "  FAULT: Other Memory Or Logic Fault!" << std::endl;
@@ -230,12 +387,12 @@ void print_status_cml(LT_PMBusDevice* device, std::ostream& os){
     if (status & 0x80)
         os << "  Invalid Or Unsupported Command Received!" << std::endl;
 }
-void print_status_mfr_specific(LT_PMBusDevice* device, std::ostream& os){
-    uint8_t status = device->readStatusMfrSpecific(true);
+void print_status_mfr_specific(std::ostream& os){
+    uint8_t status = readStatusMfrSpecific();
     os << "Status MFR Specific: 0x" << std::hex << (int)status << std::endl;
 }
-void print_status_fans_1_2(LT_PMBusDevice* device, std::ostream& os){
-    uint8_t status = device->readStatusFans_1_2(true);
+void print_status_fans_1_2(std::ostream& os){
+    uint8_t status = readStatusFans_1_2();
     os << "Status Fans_1_2: 0x" << std::hex << (int)status << std::endl;
     if (status & 0x1)
         os << "  WARNING: Airflow Warning!" << std::endl;
@@ -255,8 +412,8 @@ void print_status_fans_1_2(LT_PMBusDevice* device, std::ostream& os){
         os << "  FAULT: Fan 1 Fault!" << std::endl;
 }
 
-void print_status_vout(LT_PMBusDevice* device, std::ostream& os) {
-    uint8_t status = device->readStatusVout(true);
+void print_status_vout(std::ostream& os) {
+    uint8_t status = readStatusVout();
     os << "Status VOUT: 0x" << std::hex << (int)status << std::endl;
     if (status & 0x1)
         os << "  VOUT Tracking Error!" << std::endl;
@@ -275,8 +432,8 @@ void print_status_vout(LT_PMBusDevice* device, std::ostream& os) {
     if (status & 0x80)
         os << "  FAULT: VOUT Overvoltage Fault!" << std::endl;
 }
-void print_status_iout(LT_PMBusDevice* device, std::ostream& os){
-    uint8_t status = device->readStatusIout(true);
+void print_status_iout(std::ostream& os){
+    uint8_t status = readStatusIout();
     os << "Status IOUT: 0x" << std::hex << (int)status << std::endl;
     if (status & 0x1)
         os << "  WARNING: POUT Overpower Warning!" << std::endl;
@@ -295,8 +452,8 @@ void print_status_iout(LT_PMBusDevice* device, std::ostream& os){
     if (status & 0x80)
         os << "  FAULT: IOUT Overcurrent Fault!" << std::endl;
 }
-void print_status_input(LT_PMBusDevice* device, std::ostream& os){
-    uint8_t status = device->readStatusInput(true);
+void print_status_input(std::ostream& os){
+    uint8_t status = readStatusInput();
     os << "Status INPUT: 0x" << std::hex << (int)status << std::endl;
     if (status & 0x1)
         os << "  WARNING: PIN Overpower Warning!" << std::endl;
@@ -316,11 +473,11 @@ void print_status_input(LT_PMBusDevice* device, std::ostream& os){
         os << "  FAULT: VIN Overvaltage Fault!" << std::endl;
 }
 
-void print_mfr_date(LT_PMBusDevice* device, std::ostream& os) {
-    device->readMfrDate(true);
-}
+// void print_mfr_date(std::ostream& os) {
+//     readMfrDate();
+// }
 
 
-void print_read_iout_oc(LT_PMBusDevice* device, std::ostream& os){
-    os << "IOUT OC = " << device->readIoutOvercurrent(true) << " Amp" << std::endl;
+void print_read_iout_oc(std::ostream& os){
+    os << "IOUT OC = " << readIoutOvercurrent() << " Amp" << std::endl;
 }

@@ -240,12 +240,7 @@ LT_PMBusMath::lin16_t LT_PMBusMath::fl32_to_lin16 (LT_PMBusMath::fl32_t xin, LT_
   unsigned int            ushift;
 
   // Extract the sign, exponent and mantissa of the Float32 number
-  if ( ( xin >> (fl32_width - 1)) != 0 )
-  {
-    xout = 0;              // All negative Float32 values get mapped to zero
-  }
-  else
-  {
+
     // Extract the exponent and mantissa of the Float32 number
     fl32_exp = (((fl32_t) fl32_exp_mask)  & xin) >> fl32_mant_width;
     fl32_mant = ((fl32_t) fl32_mant_mask) & xin;
@@ -288,7 +283,7 @@ LT_PMBusMath::lin16_t LT_PMBusMath::fl32_to_lin16 (LT_PMBusMath::fl32_t xin, LT_
         xout++;
       }
     }
-  }
+  
   return xout;
 }
 

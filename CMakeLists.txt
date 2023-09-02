@@ -20,4 +20,5 @@ LT_MWDBU3200FaultLog.cpp
 LT_FaultLog.cpp
 LT_SMBusNoPec.cpp
 LT_SMBusPec.cpp
+i2cbusses.cpp
     )

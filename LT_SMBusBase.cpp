@@ -189,7 +189,7 @@ int LT_SMBusBase::readWord(uint8_t address, uint8_t command)
   if((result = i2c_smbus_read_word_data(LT_SMBusBase::file_, command)) == -1)
   {
     char msg[132];
-    sprintf(msg, "Read Word: fail data with address 0x%02 command 0x%02x result %d", address, command, result);
+    sprintf(msg, "Read Word: fail data with address 0x%02x command 0x%02x result %d", address, command, result);
     throw LT_Exception(msg);
   }
   else
